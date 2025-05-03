@@ -24,15 +24,27 @@ from kartinki import *
 
 
 def restart():
-    global player_group, road_group, grass_group, asphalt_group, camera_group,player,start_group
+    global player_group, road_group, grass_group, asphalt_group, camera_group,player,start_group,enemy_group, camera
+    camera = 0
     player_group = pygame.sprite.Group()
     road_group = pygame.sprite.Group()
     grass_group = pygame.sprite.Group()
     camera_group = pygame.sprite.Group()
     asphalt_group = pygame.sprite.Group()
     start_group = pygame.sprite.Group()
-    player = Player(player_image, (50,50))
+    player = Player(player_image, (300,85))
     player_group.add(player)
+    enemy_group = pygame.sprite.Group()
+    enemy = Enemy(enemy_image, (300, 250))
+    enemy_group.add(enemy)
+    camera_group.add(enemy)
+
+
+
+
+
+
+
 
 def gamelvl():
     sc.blit(fon_image,(0,0))
@@ -46,7 +58,8 @@ def gamelvl():
     grass_group.update(0)
     start_group.draw(sc)
     start_group.update(0)
-
+    enemy_group.draw(sc)
+    enemy_group.update(0)
     player_group.draw(sc)
     player_group.update()
 
@@ -133,12 +146,30 @@ class Asphalt(pygame.sprite.Sprite):
         self.rect.x += step
 
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self,image,pos):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        self.position = 0
+        self.speed = 4
+
+
+    def update(self, step):
+        self.position += self.speed
+        self.rect.x += self.speed + step
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self,image,pos):
         pygame.sprite.Sprite.__init__(self)
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        self.position = 0
         self.speed = 1
 
 
@@ -146,16 +177,23 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         key = pygame.key.get_pressed()
         if key[pygame.K_d]:
-            self.rect.x += self.speed
-            if self.rect.right > WIDTH/2 + 500:
-                self.rect.right = WIDTH/2 + 500
-                camera_group.update(-self.speed)
+            if self.position < 3400:
+                print(self.position)
+                self.rect.x += self.speed
+                self.position += self.speed
+                if self.rect.right > WIDTH/2 + 500:
+                    self.rect.right = WIDTH/2 + 500
+                    camera_group.update(-self.speed)
 
         elif key[pygame.K_a]:
-            self.rect.x -= self.speed
-            if self.rect.right < WIDTH/2 - 500:
-                self.rect.right = WIDTH/2 - 500
-                camera_group.update(self.speed)
+            if self.position > -300:
+                self.rect.x -= self.speed
+                self.position -= self.speed
+                if self.rect.right < WIDTH/2 - 500:
+                    self.rect.right = WIDTH/2 - 500
+                    camera_group.update(self.speed)
+
+
 
         if key[pygame.K_1]:
             self.speed = 3
@@ -165,6 +203,10 @@ class Player(pygame.sprite.Sprite):
             self.speed = 7
         elif key[pygame.K_4]:
             self.speed = 12
+        elif key[pygame.K_5]:
+            self.speed = 17
+
+
 
 restart()
 drawmaps('Drag.txt')
