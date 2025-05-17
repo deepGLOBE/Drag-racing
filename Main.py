@@ -5,6 +5,9 @@ import random
 from math import *
 import math
 from Tools.demo.sortvisu import steps
+import webbrowser
+
+
 
 pygame.init()
 current_path = os.path.dirname(__file__)
@@ -13,18 +16,29 @@ WIDTH = 1200
 HEIGHT = 800
 FPS = 60
 
-
+gamelvl_ = "menu"
+mapSelect = "Drag"
+# mapSelect = "drag2"
 
 sc = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
+
+
+
 
 from pygame.camera import Camera
 font = pygame.font.SysFont('aria',40)
 from kartinki import *
 
 
+
+
+
+
+
+
 def restart():
-    global player_group, road_group, grass_group, asphalt_group, camera_group,player,start_group,enemy_group, camera, speedMetr,speedMetr2
+    global player_group, road_group, grass_group, asphalt_group, camera_group,player,start_group,enemy_group, camera, speedMetr,speedMetr2, button_group
     camera = 0
     player_group = pygame.sprite.Group()
     road_group = pygame.sprite.Group()
@@ -38,13 +52,27 @@ def restart():
     enemy = Enemy(enemy_image, (300, 250))
     enemy_group.add(enemy)
     camera_group.add(enemy)
-    speedMetr = Circle(sc, 0, 1, 270, 710, 695, 100)
-    speedMetr2 = Circle(sc, 0, 1, 270, 410, 695, 100)
+    speedMetr = Circle(sc, 0, 1, 250, 710, 695, 100)
+    speedMetr2 = Circle(sc, 0, 1, 250, 410, 695, 100)
+    button_group = pygame.sprite.Group()
+
+    button_start = Button(startbutton_image, (500,500), 'game')
+    button_group.add(button_start)
+    button_exit = Button(exitbutton_image, (500, 700), 'exit')
+    button_group.add(button_exit)
+    button_buy = Button(buybutton_image, (500, 600), 'buy')
+    button_group.add(button_buy)
+    button_option = Button(optionbutton_image, (500, 400), 'option')
+    button_group.add(button_option)
 
 
 
+def startmenu():
+    sc.blit(startfon_image,(0,0))
+    button_group.draw(sc)
+    button_group.update()
 
-
+    pygame.display.update()
 
 
 
@@ -101,6 +129,36 @@ def drawmaps(nameFile):
                 start = Start(start_image, pos)
                 start_group.add(start)
                 camera_group.add(start)
+
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self,image,pos,next_lvl):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+        self.next_lvl = next_lvl
+
+
+    def update(self):
+        global gamelvl_
+        click = pygame.mouse.get_pos()
+        if pygame.mouse.get_pressed()[0]:
+            if self.rect.left < click[0] < self.rect.right and self.rect.top < click[1] < self.rect.bottom:
+                gamelvl_ = self.next_lvl
+
+        if pygame.mouse.get_pressed()[0]:
+            if self.rect.left < click[0] < self.rect.right and self.rect.top < click[1] < self.rect.bottom:
+                if self.next_lvl == 'buy':
+                    webbrowser.open('https://www.tiktok.com/ru-RU/', new=0)
+                gamelvl_ = self.next_lvl
+                if gamelvl_ == 'game':
+                    restart()
+                    drawmaps(mapSelect + ".txt")
+
+
+
+
 
 
 class Road(pygame.sprite.Sprite):
@@ -202,6 +260,7 @@ class Player(pygame.sprite.Sprite):
         self.acceleration = 1
         self.breaking = 1
 
+
     def move(self):
         self.rect.x += self.speed / 10
         self.position += self.speed / 10
@@ -210,8 +269,7 @@ class Player(pygame.sprite.Sprite):
         global FPS
         key = pygame.key.get_pressed()
         if key[pygame.K_d]:
-            if self.position < 3400:
-                self.speed = min(self.speed + self.acceleration, self.maxSpeed)
+            self.speed = min(self.speed + self.acceleration, self.maxSpeed)
         elif self.speed > 0:
             self.speed = max(self.speed - self.breaking, 0)
 
@@ -219,47 +277,60 @@ class Player(pygame.sprite.Sprite):
 
 
         elif key[pygame.K_a]:
-            if self.position > -300:
-                self.speed = max(self.speed - self.acceleration, -round(self.maxSpeed / 1.5))
+            self.speed = max(self.speed - self.acceleration, -round(self.maxSpeed / 1.5))
         elif self.speed < 0:
            self.speed = min(self.speed + self.breaking, 0)
 
         self.move()
         if self.rect.right > WIDTH / 2 + 500:
             self.rect.right = WIDTH / 2 + 500
-            camera_group.update(-self.speed / 10)
+            camera_group.update(-self.speed // 10)
         if self.rect.right < WIDTH / 2 - 500:
+            print(123)
             self.rect.right = WIDTH / 2 - 500
-            camera_group.update(self.speed / 10)
+            camera_group.update(-self.speed // 10)
 
         if key[pygame.K_9]:
             FPS = 10
 
         if key[pygame.K_1]:
-            self.maxSpeed = 30
+            self.maxSpeed = 40
         elif key[pygame.K_2]:
-            self.maxSpeed = 50
+            self.maxSpeed = 60
         elif key[pygame.K_3]:
-            self.maxSpeed = 70
+            self.maxSpeed = 80
         elif key[pygame.K_4]:
             self.maxSpeed = 120
         elif key[pygame.K_5]:
-            self.maxSpeed = 170
-        elif key[pygame.K_0]:
-            self.maxSpeed = 100000
-        speedMetr.maxArg = 170
+            self.maxSpeed = 180
+        elif key[pygame.K_6]:
+            self.maxSpeed = 250
+        elif key[pygame.K_7]:
+            self.maxSpeed = 300
+
+
+
+        speedMetr.maxArg = 240
         speedMetr.arg = abs(self.speed)
         speedMetr2.maxArg = max(self.maxSpeed, 1)
         speedMetr2.arg = abs(self.speed)
 
-
 restart()
-drawmaps('Drag.txt')
-
 while True:
+    print(gamelvl_)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-    gamelvl()
+    if gamelvl_ == 'menu':
+        startmenu()
+    elif gamelvl_ == 'game':
+        gamelvl()
+    elif gamelvl_ == 'exit':
+        pygame.quit()
+        sys.exit()
+    elif gamelvl_ == "option":
+        mapSelect = "drag2"
+
+        startmenu()
     clock.tick(FPS)
